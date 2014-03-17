@@ -95,77 +95,79 @@ public class PrototypePlayer
 			inAirShootingSprites = new BufferedImage[1];
 			slidingSprites = new BufferedImage[1];
 
-			// Used for easy locating specific sprites
-			int indexX = 0;
-			int indexY = 0;
+			// Used for easy locating specific sprites.
+			// Starts at top-left and moves right and down.
+			// ZERO COUNTS. First row and column are at 0.
+			int numColumnsRight = 0;
+			int numRowsDown = 0;
 
 			// inAirShootingSprites[0] = ImageIO.read(new File(graphicLocation +
 			// megaManType + "-inAirShooting.png"));
 
-			indexX = 3;
-			indexY = 5;
+			numColumnsRight = 3;
+			numRowsDown = 5;
 
-			idleSprites[0] = playerSprites.getSubimage((indexX * 50), (indexY * 50),
-					50, 50);
-			idleSprites[1] = playerSprites.getSubimage((indexX * 50), (indexY * 50),
-					50, 50);
-			idleSprites[2] = playerSprites.getSubimage((indexX * 50), (indexY * 50),
-					50, 50);
-			idleSprites[3] = playerSprites.getSubimage((indexX * 50), (indexY * 50),
-					50, 50);
-			idleSprites[4] = playerSprites.getSubimage((indexX * 50), (indexY * 50),
-					50, 50);
-			indexX++;
-			idleSprites[5] = playerSprites.getSubimage((indexX * 50), (indexY * 50),
-					50, 50);
+			idleSprites[0] = playerSprites.getSubimage((numColumnsRight * 50),
+					(numRowsDown * 50), 50, 50);
+			idleSprites[1] = playerSprites.getSubimage((numColumnsRight * 50),
+					(numRowsDown * 50), 50, 50);
+			idleSprites[2] = playerSprites.getSubimage((numColumnsRight * 50),
+					(numRowsDown * 50), 50, 50);
+			idleSprites[3] = playerSprites.getSubimage((numColumnsRight * 50),
+					(numRowsDown * 50), 50, 50);
+			idleSprites[4] = playerSprites.getSubimage((numColumnsRight * 50),
+					(numRowsDown * 50), 50, 50);
+			numColumnsRight++;
+			idleSprites[5] = playerSprites.getSubimage((numColumnsRight * 50),
+					(numRowsDown * 50), 50, 50);
 
-			indexX = 0;
-			indexY = 1;
-			shootingSprites[0] = playerSprites.getSubimage((indexX * 50),
-					(indexY * 50), 50, 50);
+			numColumnsRight = 0;
+			numRowsDown = 1;
+			shootingSprites[0] = playerSprites.getSubimage((numColumnsRight * 50),
+					(numRowsDown * 50), 50, 50);
 
-			indexX = 1;
-			indexY = 0;
-			walkingSprites[0] = playerSprites.getSubimage((indexX * 50), (indexY * 50),
-					50, 50);
-			indexX++;
-			walkingSprites[1] = playerSprites.getSubimage((indexX * 50), (indexY * 50),
-					50, 50);
-			indexX++;
-			walkingSprites[2] = playerSprites.getSubimage((indexX * 50), (indexY * 50),
-					50, 50);
-			indexX--;
-			walkingSprites[3] = playerSprites.getSubimage((indexX * 50), (indexY * 50),
-					50, 50);
+			numColumnsRight = 1;
+			numRowsDown = 0;
+			walkingSprites[0] = playerSprites.getSubimage((numColumnsRight * 50),
+					(numRowsDown * 50), 50, 50);
+			numColumnsRight++;
+			walkingSprites[1] = playerSprites.getSubimage((numColumnsRight * 50),
+					(numRowsDown * 50), 50, 50);
+			numColumnsRight++;
+			walkingSprites[2] = playerSprites.getSubimage((numColumnsRight * 50),
+					(numRowsDown * 50), 50, 50);
+			numColumnsRight--;
+			walkingSprites[3] = playerSprites.getSubimage((numColumnsRight * 50),
+					(numRowsDown * 50), 50, 50);
 
-			indexX = 1;
-			indexY = 1;
-			walkingShootingSprites[0] = playerSprites.getSubimage((indexX * 50),
-					(indexY * 50), 50, 50);
-			indexX++;
-			walkingShootingSprites[1] = playerSprites.getSubimage((indexX * 50),
-					(indexY * 50), 50, 50);
-			indexX++;
-			walkingShootingSprites[2] = playerSprites.getSubimage((indexX * 50),
-					(indexY * 50), 50, 50);
-			indexX--;
-			walkingShootingSprites[3] = playerSprites.getSubimage((indexX * 50),
-					(indexY * 50), 50, 50);
+			numColumnsRight = 1;
+			numRowsDown = 1;
+			walkingShootingSprites[0] = playerSprites.getSubimage(
+					(numColumnsRight * 50), (numRowsDown * 50), 50, 50);
+			numColumnsRight++;
+			walkingShootingSprites[1] = playerSprites.getSubimage(
+					(numColumnsRight * 50), (numRowsDown * 50), 50, 50);
+			numColumnsRight++;
+			walkingShootingSprites[2] = playerSprites.getSubimage(
+					(numColumnsRight * 50), (numRowsDown * 50), 50, 50);
+			numColumnsRight--;
+			walkingShootingSprites[3] = playerSprites.getSubimage(
+					(numColumnsRight * 50), (numRowsDown * 50), 50, 50);
 
-			indexX = 4;
-			indexY = 0;
-			inAirSprites[0] = playerSprites.getSubimage((indexX * 50), (indexY * 50),
-					50, 50);
+			numColumnsRight = 4;
+			numRowsDown = 0;
+			inAirSprites[0] = playerSprites.getSubimage((numColumnsRight * 50),
+					(numRowsDown * 50), 50, 50);
 
-			indexX = 4;
-			indexY = 1;
-			inAirShootingSprites[0] = playerSprites.getSubimage((indexX * 50),
-					(indexY * 50), 50, 50);
+			numColumnsRight = 4;
+			numRowsDown = 1;
+			inAirShootingSprites[0] = playerSprites.getSubimage((numColumnsRight * 50),
+					(numRowsDown * 50), 50, 50);
 
-			indexX = 0;
-			indexY = 3;
-			slidingSprites[0] = playerSprites.getSubimage((indexX * 50), (indexY * 50),
-					50, 50);
+			numColumnsRight = 0;
+			numRowsDown = 3;
+			slidingSprites[0] = playerSprites.getSubimage((numColumnsRight * 50),
+					(numRowsDown * 50), 50, 50);
 
 		} catch (Exception e)
 		{
