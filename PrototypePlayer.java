@@ -21,19 +21,21 @@ public class PrototypePlayer
 
 	private int width;
 	private int height;
-	private int currentSpriteHeight = 24;
 
 	private boolean goingLeft;
 	private boolean goingRight;
 	private boolean usingWeapon;
+	private boolean holdingDown;
+	private boolean sliding;
+	private int slideCounter;
 
 	private boolean jumping;
 	private boolean falling = true;
 
-	private double moveSpeed = 3.0;
+	private double moveSpeed = 1.5;
 	private double maxFallingSpeed = 12;
-	private double jumpPower = -6.0;
-	private double gravity = 0.25;
+	private double jumpPower = -4.875;
+	private double gravity = 0.20;
 
 	private boolean topLeft;
 	private boolean topRight;
@@ -42,13 +44,17 @@ public class PrototypePlayer
 
 	private Animation animation = new Animation();
 	private String graphicLocation = "graphics/player/";
-	private String megaManType = "n_MegaMan";
+	private String megaManType = "normal";
+	private BufferedImage playerSprites;
 	private BufferedImage[] idleSprites;
 	private BufferedImage[] inAirSprites;
 	private BufferedImage[] shootingSprites;
 	private BufferedImage[] walkingSprites;
-	// private BufferedImage[] walkingShootingSprites;
-	// private BufferedImage[] inAirShootingSprites;
+	private BufferedImage[] walkingShootingSprites;
+	// private BufferedImage[] startWalkingSprites;
+	// private BufferedImage[] startWalkingShootingSprites;
+	private BufferedImage[] inAirShootingSprites;
+	private BufferedImage[] slidingSprites;
 	private boolean facingLeft;
 
 	private TileMap tileMap;
@@ -60,36 +66,106 @@ public class PrototypePlayer
 		width = 15;
 		height = 22;
 
+		// Load the graphics once per pallette swap.
+		loadGraphics(0);
+		loadGraphics(1);
+	}
+
+	private void loadGraphics(int index)
+	{
+		/*
+		 * Pro tip: index 0 = normal index 1 = twilightsparkle
+		 */
 		try
 		{
 			// Player's Sprites!
-			idleSprites = new BufferedImage[1];
+
+			// This one is the full sprite list page.
+			playerSprites = ImageIO.read(new File(graphicLocation + megaManType
+					+ "_MegaMan_SpriteSheet.png"));
+
+			// Number at the end is how many frames in the animation. 1 is no animation.
+			idleSprites = new BufferedImage[6];
 			inAirSprites = new BufferedImage[1];
 			shootingSprites = new BufferedImage[1];
-			walkingSprites = new BufferedImage[3];
-			// walkingShootingSprites = new BufferedImage[3];
-			// inAirShootingSprites = new BufferedImage[1];
+			walkingSprites = new BufferedImage[4];
+			walkingShootingSprites = new BufferedImage[4];
+			// startWalkingSprites = new BufferedImage[1];
+			// startWalkingShootingSprites = new BufferedImage[1];
+			inAirShootingSprites = new BufferedImage[1];
+			slidingSprites = new BufferedImage[1];
 
-			// Full sprite page of sprites is 50 pixels width, 50 pixels height.
+			// Used for easy locating specific sprites
+			int indexX = 0;
+			int indexY = 0;
 
-			// Actual image locations in use!
-			idleSprites[0] = ImageIO.read(new File(graphicLocation + megaManType
-					+ "-idle.png"));
-			inAirSprites[0] = ImageIO.read(new File(graphicLocation + megaManType
-					+ "-inAir.png"));
-			shootingSprites[0] = ImageIO.read(new File(graphicLocation + megaManType
-					+ "-shooting.png"));
 			// inAirShootingSprites[0] = ImageIO.read(new File(graphicLocation +
 			// megaManType + "-inAirShooting.png"));
 
-			BufferedImage walkingImage = ImageIO.read(new File(graphicLocation
-					+ megaManType + "-walking.png"));
-			for(int i = 0; i < walkingSprites.length; i++)
-			{
-				walkingSprites[i] = walkingImage.getSubimage(i * 24, 0, 24, 24);
-			}
-			// walkingShootingSprites[0] = ImageIO.read(new File(megaManType +
-			// "-walkingShooting.png"));
+			indexX = 3;
+			indexY = 5;
+
+			idleSprites[0] = playerSprites.getSubimage((indexX * 50), (indexY * 50),
+					50, 50);
+			idleSprites[1] = playerSprites.getSubimage((indexX * 50), (indexY * 50),
+					50, 50);
+			idleSprites[2] = playerSprites.getSubimage((indexX * 50), (indexY * 50),
+					50, 50);
+			idleSprites[3] = playerSprites.getSubimage((indexX * 50), (indexY * 50),
+					50, 50);
+			idleSprites[4] = playerSprites.getSubimage((indexX * 50), (indexY * 50),
+					50, 50);
+			indexX++;
+			idleSprites[5] = playerSprites.getSubimage((indexX * 50), (indexY * 50),
+					50, 50);
+
+			indexX = 0;
+			indexY = 1;
+			shootingSprites[0] = playerSprites.getSubimage((indexX * 50),
+					(indexY * 50), 50, 50);
+
+			indexX = 1;
+			indexY = 0;
+			walkingSprites[0] = playerSprites.getSubimage((indexX * 50), (indexY * 50),
+					50, 50);
+			indexX++;
+			walkingSprites[1] = playerSprites.getSubimage((indexX * 50), (indexY * 50),
+					50, 50);
+			indexX++;
+			walkingSprites[2] = playerSprites.getSubimage((indexX * 50), (indexY * 50),
+					50, 50);
+			indexX--;
+			walkingSprites[3] = playerSprites.getSubimage((indexX * 50), (indexY * 50),
+					50, 50);
+
+			indexX = 1;
+			indexY = 1;
+			walkingShootingSprites[0] = playerSprites.getSubimage((indexX * 50),
+					(indexY * 50), 50, 50);
+			indexX++;
+			walkingShootingSprites[1] = playerSprites.getSubimage((indexX * 50),
+					(indexY * 50), 50, 50);
+			indexX++;
+			walkingShootingSprites[2] = playerSprites.getSubimage((indexX * 50),
+					(indexY * 50), 50, 50);
+			indexX--;
+			walkingShootingSprites[3] = playerSprites.getSubimage((indexX * 50),
+					(indexY * 50), 50, 50);
+
+			indexX = 4;
+			indexY = 0;
+			inAirSprites[0] = playerSprites.getSubimage((indexX * 50), (indexY * 50),
+					50, 50);
+
+			indexX = 4;
+			indexY = 1;
+			inAirShootingSprites[0] = playerSprites.getSubimage((indexX * 50),
+					(indexY * 50), 50, 50);
+
+			indexX = 0;
+			indexY = 3;
+			slidingSprites[0] = playerSprites.getSubimage((indexX * 50), (indexY * 50),
+					50, 50);
 
 		} catch (Exception e)
 		{
@@ -117,10 +193,17 @@ public class PrototypePlayer
 		goingRight = b;
 	}
 
+	public void setDown(boolean b)
+	{
+		holdingDown = b;
+	}
+
 	// Called when player tries to jump
+	// Doesn't work if the player is in mid-air (unless infinite jump cheat is active)
+	// Also doesn't work while sliding
 	public void setJumping(boolean b)
 	{
-		if(!falling || infiniteJumps)
+		if((!falling || infiniteJumps))
 		{
 			jumping = true;
 		}
@@ -129,6 +212,11 @@ public class PrototypePlayer
 	public void setWeaponUse(boolean b)
 	{
 		usingWeapon = b;
+	}
+
+	public void setMegaManType(String type)
+	{
+		megaManType = type;
 	}
 
 	private void calculateCorners(double x, double y)
@@ -172,10 +260,88 @@ public class PrototypePlayer
 	/*
 	 * howMuchMovement * in charge of the acceleration of the player character. MAKES NO ACTUAL
 	 * MOVEMENT. Call checkCollisions afterwards for the real movement.
+	 * 
+	 * IF SLIDING THE METHOD ENDS EARLY BECAUSE SLIDING OVERRIDES ALL OTHER MOVEMENT BUT FALLING
 	 */
 	private void howMuchMovement()
 	{
 		// find next position
+
+		// Y position is found first due to jumping/sliding using same button
+
+		// Are you pressing jump? (doesn't work while sliding)
+		if(jumping && !sliding)
+		{
+			// Jump + Down makes player slide
+			if(holdingDown)
+			{
+				sliding = true;
+
+				// Begin slideCounter. This decides how long until slide ends - if
+				// the slide doesn't ram a wall or fall off a cliff or something
+				// first.
+				slideCounter = 30; // Slide counter is in frames. 60 frames a
+						   // second.
+			}
+			// Jumping
+			else
+			{
+				dy += jumpPower;
+				falling = true;
+			}
+			jumping = false; // Can't jump when not on the ground!
+		}
+		if(falling) // Falling overrides jumping
+		{
+			// Can't slide while in the air.
+			// REMOVE THIS FOR COOL JUMP-KICKS
+			sliding = false;
+
+			// Apply gravity - set player's fall speed to max fall speed if over max
+			dy += gravity;
+			if(dy > maxFallingSpeed)
+			{
+				dy = maxFallingSpeed;
+			}
+		}
+		else
+		// You must be on the ground then
+		{
+			dy = 0;
+		}
+
+		// X position next
+
+		// Are you sliding?
+		// Falling stops sliding (as does ramming walls, but that's in collision detection).
+		// Cannot slide while in mid-air.
+		if(sliding)
+		{
+			// Increment slide counter. When reaches 0 stops sliding. Sliding continues
+			// for 1 additional frame.
+			slideCounter--;
+
+			// When slideCounter reaches 0 megaMan stops sliding
+			if(slideCounter == 0)
+			{
+				sliding = false;
+			}
+
+			// Which way are you sliding? (uses direction player is facing)
+			if(facingLeft)
+			{
+				// Sliding makes you twice as fast!
+				dx = -moveSpeed * 2;
+			}
+			else
+			{
+				// Sliding makes you twice as fast!
+				dx = moveSpeed * 2;
+			}
+			return; // THIS IS BAD CODING
+		}
+
+		// Are you moving left or right or not at all?
 		if(goingLeft)
 		{
 			// dx -= moveSpeed;
@@ -188,32 +354,11 @@ public class PrototypePlayer
 		}
 		else
 		{
+			// How boring. No horizontal movement at all.
 			dx = 0;
 		}
-		// Friction could be added here
+		// Friction could be added here if necessary
 
-		if(jumping)
-		{
-			dy += jumpPower;
-			falling = true;
-			jumping = false;
-			currentSpriteHeight = 30;
-		}
-
-		if(falling)
-		{
-			dy += gravity;
-			if(dy > maxFallingSpeed)
-			{
-				dy = maxFallingSpeed;
-			}
-		}
-		else
-		// You must be on the ground then
-		{
-			dy = 0;
-			currentSpriteHeight = 24;
-		}
 	}
 
 	/*
@@ -274,6 +419,10 @@ public class PrototypePlayer
 			if(topLeft || bottomLeft)
 			{
 				dx = 0;
+
+				// Ramming walls stops your slide
+				sliding = false;
+
 				tempX = currentColumn * tileMap.getTileSize() + (width / 2); // Prevents
 											     // getting
 											     // stuck
@@ -290,6 +439,10 @@ public class PrototypePlayer
 			if(topRight || bottomRight)
 			{
 				dx = 0;
+
+				// Ramming walls stops your slide
+				sliding = false;
+
 				tempX = (currentColumn + 1) * tileMap.getTileSize() - (width / 2); // Prevents
 												   // getting
 												   // stuck
@@ -310,7 +463,6 @@ public class PrototypePlayer
 			{
 				// Then the player is falling
 				falling = true;
-				currentSpriteHeight = 30;
 			}
 		}
 
@@ -332,26 +484,50 @@ public class PrototypePlayer
 
 	private void animateSprite()
 	{
-		if(goingLeft || goingRight)
+		// Cascade effect is important here.
+		// Pay attention to the order and the else/if.
+		if(sliding)
 		{
-			animation.setFrames(walkingSprites);
-			animation.setDelay(200);
+			animation.setFrames(slidingSprites);
+			animation.setDelay(-1);
 		}
-		else
+		else if(falling)
+		{
+			if(usingWeapon)
+			{
+				animation.setFrames(inAirShootingSprites);
+				animation.setDelay(-1);
+			}
+			else
+			{
+				animation.setFrames(inAirSprites);
+				animation.setDelay(-1);
+			}
+		}
+		else if(goingLeft || goingRight)
 		{
 			if(usingWeapon)
 			{
 				// CHECK FOR WEAPON TYPE HERE? ~~~~~~~~~~~~~~~~~~~~
-				animation.setFrames(shootingSprites);
-				animation.setDelay(-1);
+				animation.setFrames(walkingShootingSprites);
+				animation.setDelay(200);
 			}
-			animation.setFrames(idleSprites);
+			else
+			{
+				animation.setFrames(walkingSprites);
+				animation.setDelay(200);
+			}
+		}
+		else if(usingWeapon)
+		{
+			// CHECK FOR WEAPON TYPE HERE? ~~~~~~~~~~~~~~~~~~~~
+			animation.setFrames(shootingSprites);
 			animation.setDelay(-1);
 		}
-		if(falling)
+		else
 		{
-			animation.setFrames(inAirSprites);
-			animation.setDelay(-1);
+			animation.setFrames(idleSprites);
+			animation.setDelay(350);
 		}
 		animation.update();
 
@@ -371,25 +547,27 @@ public class PrototypePlayer
 		int ty = tileMap.getY();
 
 		// Sprite graphics
-		if(!facingLeft)
+		if(!facingLeft) // Right facing
 		{
-			// Right facing
-			graphic.drawImage(animation.getImage(), (int) (tx + x - width / 2),
-					(int) (ty + y - height / 2), null);
+			graphic.drawImage(animation.getImage(), (int) (tx + x) - 25,
+					(int) (ty + y) - 25, 50, 50, null);
 		}
 		else
 		{
 			// This one is the same as above, but flipped horizontally.
 			// Left facing
-			graphic.drawImage(animation.getImage(), (int) (tx + x - (width / 2) + 24),
-					(int) (ty + y - height / 2), -24, currentSpriteHeight, null);
+			graphic.drawImage(animation.getImage(), (int) (tx + x) - 25 + 50,
+					(int) (ty + y) - 25, -50, 50, null);
+			// The additional 50 in X is to offset the -50 in width that was used to
+			// flip the sprite
 		}
 
-		// Hitbox graphic
-		//graphic.setColor(Color.RED);
-		// Use offset from drawing the player, since x and y are the middle of the player
-		// and draw draws from the top-left.
-		//graphic.drawRect((int) (tx + x - width / 2), (int) (ty + y - height / 2), width,
-				//height);
+		// // Hitbox graphic
+		// graphic.setColor(Color.RED);
+		//
+		// //Use offset from drawing the player, since x and y are the middle of the player
+		// //and draw draws from the top-left.
+		// graphic.drawRect((int) (tx + x - width / 2), (int) (ty + y - height / 2), width,
+		// height);
 	}
 }
