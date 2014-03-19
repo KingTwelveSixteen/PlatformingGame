@@ -1,6 +1,6 @@
 package startUp;
 
-//import java.awt.Color;
+// import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -91,8 +91,9 @@ public class GamePanel extends JPanel implements Runnable, KeyListener
 		image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		graphics = (Graphics2D) image.getGraphics();
 
-		tileMap = new TileMap("testmap.txt", 32); // 32 is the tile-size
-		tileMap.loadTiles("tileset.gif");
+		tileMap = new TileMap("testmap", 32); // 32 is the tile-size
+		tileMap.loadTiles("tileset.gif", true); // boolean is for if the tiles have a pixel
+							// boundary between each other or not
 
 		player = new PrototypePlayer(tileMap);
 		player.setX(50);
