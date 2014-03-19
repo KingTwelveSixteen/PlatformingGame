@@ -27,7 +27,8 @@ public class PrototypePlayer
 	private boolean usingWeapon;
 	private boolean holdingDown;
 	private boolean sliding;
-	private int slideCounter;
+	
+	private int slideDelay;
 
 	private boolean jumping;
 	private boolean falling = true;
@@ -279,10 +280,10 @@ public class PrototypePlayer
 			{
 				sliding = true;
 
-				// Begin slideCounter. This decides how long until slide ends - if
+				// Begin slideDelay. This decides how long until slide ends - if
 				// the slide doesn't ram a wall or fall off a cliff or something
 				// first.
-				slideCounter = 30; // Slide counter is in frames. 60 frames a
+				slideDelay = 30; // Slide counter is in frames. 60 frames a
 						   // second.
 			}
 			// Jumping
@@ -319,12 +320,12 @@ public class PrototypePlayer
 		// Cannot slide while in mid-air.
 		if(sliding)
 		{
-			// Increment slide counter. When reaches 0 stops sliding. Sliding continues
+			// Deincrement slide delay. When reaches 0 stops sliding. Sliding continues
 			// for 1 additional frame.
-			slideCounter--;
+			slideDelay--;
 
-			// When slideCounter reaches 0 megaMan stops sliding
-			if(slideCounter == 0)
+			// When delay reaches 0 megaMan stops sliding
+			if(slideDelay == 0)
 			{
 				sliding = false;
 			}
