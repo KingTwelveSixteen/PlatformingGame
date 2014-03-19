@@ -18,12 +18,13 @@ public class TileMap
 	private int mapHeight;
 
 	private BufferedReader reader;
+	private BufferedReader backgroundReader;
 	private String delimeter = "\\s+"; // Need to do this for numbers greater than 10 otherwise
 					   // it would read it as 1, then 0 and screw everything up.
 					   // \\s+ means any white space.
 
 	private BufferedImage tileSet;
-	private String tileSetLocation = "graphics/";
+	private String tileSetLocation = "graphics/tilesets/";
 
 	private Tile tiles[][];
 
@@ -33,13 +34,13 @@ public class TileMap
 	private int maxX = 0;
 	private int maxY = 0;
 
-	public TileMap(String s, int tileSize)
+	public TileMap(String tileMapName, int tileSize)
 	{
 		this.tileSize = tileSize;
 
 		try
 		{
-			reader = new BufferedReader(new FileReader("testmap.txt"));
+			reader = new BufferedReader(new FileReader(tileMapName + ".txt"));
 
 			// The first two lines of the file MUST be the WIDTH, then HEIGHT of the
 			// map. The actual map comes afterwards.
@@ -69,15 +70,23 @@ public class TileMap
 
 	}
 
-	public void loadTiles(String tileName)
+	public void loadTiles(String tileSetName, boolean onePixelOffset)
 	{
 		try
 		{
-			tileSet = ImageIO.read(new File(tileSetLocation + "tileset.gif"));
+			tileSet = ImageIO.read(new File(tileSetLocation + tileSetName));
 
-			// The tileset being used has 1 pixel of white-space squares surrounding all
-			// the tiles. The +1's are there to get rid of that.
-			int numTilesAcross = (tileSet.getWidth() + 1) / (tileSize + 1);
+			int numTilesAcross;
+			if(onePixelOffset)
+			{
+				// If the tileset being used has 1 pixel of white-space squares
+				// surrounding all the tiles the +1's are gonna get rid of that.
+				numTilesAcross = (tileSet.getWidth() + 1) / (tileSize + 1);
+			}
+			else
+			{
+				numTilesAcross = (tileSet.getWidth() / tileSize);
+			}
 
 			tiles = new Tile[2][numTilesAcross];
 
@@ -88,8 +97,8 @@ public class TileMap
 						tileSize, tileSize);
 				tiles[0][column] = new Tile(subImage, false);
 
-				// The tileset is set up so that all the blocked things are on the
-				// second row.
+				// The prototype tileset stuff is set up so that all the blocked
+				// things are on the second row. Also only two available rows.
 				subImage = tileSet.getSubimage(column * tileSize + column,
 						tileSize + 1, tileSize, tileSize);
 				tiles[1][column] = new Tile(subImage, true);
@@ -97,7 +106,7 @@ public class TileMap
 
 		} catch (Exception e)
 		{
-
+			System.out.println("tile load error");
 		}
 	}
 
