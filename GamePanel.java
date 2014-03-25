@@ -76,7 +76,8 @@ public class GamePanel extends JPanel implements Runnable, KeyListener
 
 			try
 			{
-				thread.sleep(waitTime);
+				thread.sleep(waitTime); // I don't know what the problem is. Doesn't negatively
+										// impact the performance or anything as far as I can tell
 			} catch (Exception e)
 			{
 
@@ -91,9 +92,10 @@ public class GamePanel extends JPanel implements Runnable, KeyListener
 		image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		graphics = (Graphics2D) image.getGraphics();
 
-		tileMap = new TileMap("testmap", 32); // 32 is the tile-size
-		tileMap.loadTiles("tileset.gif", true); // boolean is for if the tiles have a pixel
-							// boundary between each other or not
+		tileMap = new TileMap("megamantestmap", 16); // 16 is the tile-size for megaman games
+		
+		tileMap.loadTiles("caveAndMetal.gif", 0); // second is pixel offset, for tilesets that
+												  // surround each tile with a square of pixels.
 
 		player = new PrototypePlayer(tileMap);
 		player.setX(50);
@@ -114,8 +116,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener
 		Image backgroundImg = null;
 		try
 		{
-			backgroundImg = ImageIO.read(new File(
-					"graphics/background_old_royal_castle.gif"));
+			backgroundImg = ImageIO.read(new File("graphics/background_old_royal_castle.gif"));
 
 		} catch (IOException e)
 		{
