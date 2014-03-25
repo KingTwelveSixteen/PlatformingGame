@@ -14,21 +14,24 @@ public class PrototypePlayer
 {
 	private boolean infiniteJumps = true; // Currently this is a CHEAT CODE
 
+	// X and Y are the middle of the sprite
 	private double x;
 	private double y;
-	private double dx;
-	private double dy;
+
+	private double xMovement;
+	private double yMovement;
 
 	private int width;
 	private int height;
+
+	private int slideDelay;
+	private int usingWeaponDelay;
 
 	private boolean goingLeft;
 	private boolean goingRight;
 	private boolean usingWeapon;
 	private boolean holdingDown;
 	private boolean sliding;
-	
-	private int slideDelay;
 
 	private boolean jumping;
 	private boolean falling = true;
@@ -38,10 +41,10 @@ public class PrototypePlayer
 	private double jumpPower = -4.875;
 	private double gravity = 0.20;
 
-	private boolean topLeft;
-	private boolean topRight;
-	private boolean bottomLeft;
-	private boolean bottomRight;
+	private boolean topLeftBlocked;
+	private boolean topRightBlocked;
+	private boolean bottomLeftBlocked;
+	private boolean bottomRightBlocked;
 
 	private Animation animation = new Animation();
 	private String graphicLocation = "graphics/player/";
@@ -60,12 +63,12 @@ public class PrototypePlayer
 
 	private TileMap tileMap;
 
-	public PrototypePlayer(TileMap tm)
+	public PrototypePlayer(TileMap currentLevelsTileMap)
 	{
-		tileMap = tm;
+		tileMap = currentLevelsTileMap;
 
-		width = 15;
-		height = 22;
+		width = 12;
+		height = 24;
 
 		// Load the graphics once per pallette swap.
 		loadGraphics(0);
@@ -224,10 +227,12 @@ public class PrototypePlayer
 
 	private void calculateCorners(double x, double y)
 	{
-		int leftTile = tileMap.getColumnTile((int) (x - width / 2));
-		int rightTile = tileMap.getColumnTile((int) (x + width / 2) - 1);
-		int topTile = tileMap.getRowTile((int) (y - height / 2));
-		int bottomTile = tileMap.getRowTile((int) (y + height / 2) - 1);
+		// X and Y are the middle of the sprite, thats what the weirdness is about. Negative
+		// one is for avoiding going out of boundaries.
+		int leftTileLocation = tileMap.getColumnTileLocation((int) (x - width / 2));
+		int rightTileLocation = tileMap.getColumnTileLocation((int) (x + width / 2) - 1);
+		int topTileLocation = tileMap.getRowTileLocation((int) (y - height / 2));
+		int bottomTileLocation = tileMap.getRowTileLocation((int) (y + height / 2) - 1);
 
 		/*
 		 * topLeft = (tileMap.getTile(topTile, leftTile) == 0); topRight =
@@ -236,11 +241,10 @@ public class PrototypePlayer
 		 * (tileMap.getTile(bottomTile, rightTile) == 0);
 		 */
 
-		// Replaced getTile with isBlocked for tileset usage fun
-		topLeft = tileMap.isBlocked(topTile, leftTile);
-		topRight = tileMap.isBlocked(topTile, rightTile);
-		bottomLeft = tileMap.isBlocked(bottomTile, leftTile);
-		bottomRight = tileMap.isBlocked(bottomTile, rightTile);
+		topLeftBlocked = tileMap.isBlocked(topTileLocation, leftTileLocation);
+		topRightBlocked = tileMap.isBlocked(topTileLocation, rightTileLocation);
+		bottomLeftBlocked = tileMap.isBlocked(bottomTileLocation, leftTileLocation);
+		bottomRightBlocked = tileMap.isBlocked(bottomTileLocation, rightTileLocation);
 	}
 
 	// ////////////////////////////////////////////////////////////
@@ -284,12 +288,21 @@ public class PrototypePlayer
 				// the slide doesn't ram a wall or fall off a cliff or something
 				// first.
 				slideDelay = 30; // Slide counter is in frames. 60 frames a
-						   // second.
+						 // second.
 			}
 			// Jumping
 			else
 			{
-				dy += jumpPower;
+
+				// dy += jumpPower;
+				yMovement = jumpPower;// The difference between these two is that
+						      // the first
+						      // one allows for ridiculously high
+						      // double-jumps if
+						      // infinite jumps is turned on. That's why the
+						      // second
+						      // one is the one that isn't commented out.
+
 				falling = true;
 			}
 			jumping = false; // Can't jump when not on the ground!
@@ -301,16 +314,16 @@ public class PrototypePlayer
 			sliding = false;
 
 			// Apply gravity - set player's fall speed to max fall speed if over max
-			dy += gravity;
-			if(dy > maxFallingSpeed)
+			yMovement += gravity;
+			if(yMovement > maxFallingSpeed)
 			{
-				dy = maxFallingSpeed;
+				yMovement = maxFallingSpeed;
 			}
 		}
 		else
 		// You must be on the ground then
 		{
-			dy = 0;
+			yMovement = 0;
 		}
 
 		// X position next
@@ -334,12 +347,12 @@ public class PrototypePlayer
 			if(facingLeft)
 			{
 				// Sliding makes you twice as fast!
-				dx = -moveSpeed * 2;
+				xMovement = -moveSpeed * 2;
 			}
 			else
 			{
 				// Sliding makes you twice as fast!
-				dx = moveSpeed * 2;
+				xMovement = moveSpeed * 2;
 			}
 			return; // THIS IS BAD CODING
 		}
@@ -348,17 +361,17 @@ public class PrototypePlayer
 		if(goingLeft)
 		{
 			// dx -= moveSpeed;
-			dx = -moveSpeed;
+			xMovement = -moveSpeed;
 		}
 		else if(goingRight)
 		{
 			// dx += moveSpeed;
-			dx = moveSpeed;
+			xMovement = moveSpeed;
 		}
 		else
 		{
 			// How boring. No horizontal movement at all.
-			dx = 0;
+			xMovement = 0;
 		}
 		// Friction could be added here if necessary
 
@@ -371,22 +384,22 @@ public class PrototypePlayer
 	 */
 	private void checkCollisions()
 	{
-		int currentColumn = tileMap.getColumnTile((int) x);
-		int currentRow = tileMap.getRowTile((int) y);
+		int currentColumn = tileMap.getColumnTileLocation((int) x);
+		int currentRow = tileMap.getRowTileLocation((int) y);
 
-		double goingToX = x + dx;
-		double goingToY = y + dy;
+		double goingToX = x + xMovement;
+		double goingToY = y + yMovement;
 
 		// Don't want to actually change the x and y before we know the collisions
 		double tempX = x;
 		double tempY = y;
 
 		calculateCorners(x, goingToY);
-		if(dy < 0)
+		if(yMovement < 0)
 		{
-			if(topLeft || topRight)
+			if(topLeftBlocked || topRightBlocked)
 			{
-				dy = 0;
+				yMovement = 0;
 				tempY = currentRow * tileMap.getTileSize() + (height / 2); // Prevents
 											   // getting
 											   // stuck
@@ -395,14 +408,14 @@ public class PrototypePlayer
 			}
 			else
 			{
-				tempY += dy;
+				tempY += yMovement;
 			}
 		}
-		if(dy > 0)
+		if(yMovement > 0)
 		{
-			if(bottomLeft || bottomRight)
+			if(bottomLeftBlocked || bottomRightBlocked)
 			{
-				dy = 0;
+				yMovement = 0;
 				falling = false;
 				tempY = (currentRow + 1) * tileMap.getTileSize() - (height / 2); // Prevents
 												 // getting
@@ -412,16 +425,16 @@ public class PrototypePlayer
 			}
 			else
 			{
-				tempY += dy;
+				tempY += yMovement;
 			}
 		}
 
 		calculateCorners(goingToX, y);
-		if(dx < 0)
+		if(xMovement < 0)
 		{
-			if(topLeft || bottomLeft)
+			if(topLeftBlocked || bottomLeftBlocked)
 			{
-				dx = 0;
+				xMovement = 0;
 
 				// Ramming walls stops your slide
 				sliding = false;
@@ -434,14 +447,14 @@ public class PrototypePlayer
 			}
 			else
 			{
-				tempX += dx;
+				tempX += xMovement;
 			}
 		}
-		if(dx > 0)
+		if(xMovement > 0)
 		{
-			if(topRight || bottomRight)
+			if(topRightBlocked || bottomRightBlocked)
 			{
-				dx = 0;
+				xMovement = 0;
 
 				// Ramming walls stops your slide
 				sliding = false;
@@ -454,7 +467,7 @@ public class PrototypePlayer
 			}
 			else
 			{
-				tempX += dx;
+				tempX += xMovement;
 			}
 		}
 
@@ -462,7 +475,7 @@ public class PrototypePlayer
 		{
 			calculateCorners(x, y + 1);
 			// If there are no solid tiles to the bottom left or right
-			if(!bottomLeft && !bottomRight)
+			if(!bottomLeftBlocked && !bottomRightBlocked)
 			{
 				// Then the player is falling
 				falling = true;
@@ -489,17 +502,29 @@ public class PrototypePlayer
 	{
 		// Cascade effect is important here.
 		// Pay attention to the order and the else/if.
+
+		if(usingWeapon && !sliding)
+		{
+			// Using weapon delay because megaman needs to hold out weapon continuously
+			// if used recently
+			usingWeaponDelay = 5; // Delay is in frames.
+		}
+
 		if(sliding)
 		{
 			animation.setFrames(slidingSprites);
 			animation.setDelay(-1);
+
+			// You stop holding out your weapon if you slide
+			usingWeaponDelay = 0;
 		}
 		else if(falling)
 		{
-			if(usingWeapon)
+			if(usingWeaponDelay > 0)
 			{
 				animation.setFrames(inAirShootingSprites);
 				animation.setDelay(-1);
+				usingWeaponDelay--;
 			}
 			else
 			{
@@ -509,11 +534,12 @@ public class PrototypePlayer
 		}
 		else if(goingLeft || goingRight)
 		{
-			if(usingWeapon)
+			if(usingWeaponDelay > 0)
 			{
 				// CHECK FOR WEAPON TYPE HERE? ~~~~~~~~~~~~~~~~~~~~
 				animation.setFrames(walkingShootingSprites);
 				animation.setDelay(200);
+				usingWeaponDelay--;
 			}
 			else
 			{
@@ -521,11 +547,12 @@ public class PrototypePlayer
 				animation.setDelay(200);
 			}
 		}
-		else if(usingWeapon)
+		else if(usingWeaponDelay > 0)
 		{
 			// CHECK FOR WEAPON TYPE HERE? ~~~~~~~~~~~~~~~~~~~~
 			animation.setFrames(shootingSprites);
 			animation.setDelay(-1);
+			usingWeaponDelay--;
 		}
 		else
 		{
@@ -534,43 +561,45 @@ public class PrototypePlayer
 		}
 		animation.update();
 
-		if(dx < 0)
+		if(xMovement < 0)
 		{
 			facingLeft = true;
 		}
-		if(dx > 0)
+		if(xMovement > 0)
 		{
 			facingLeft = false;
 		}
+
 	}
 
 	public void draw(Graphics2D graphic)
 	{
-		int tx = tileMap.getX();
-		int ty = tileMap.getY();
+		// For scrolling
+		int tileOffsetX = tileMap.getX();
+		int tileOffsetY = tileMap.getY();
 
 		// Sprite graphics
 		if(!facingLeft) // Right facing
 		{
-			graphic.drawImage(animation.getImage(), (int) (tx + x) - 25,
-					(int) (ty + y) - 25, 50, 50, null);
+			graphic.drawImage(animation.getImage(), (int) (tileOffsetX + x) - 26,
+					(int) (tileOffsetY + y) - 25, 50, 50, null);
 		}
 		else
 		{
 			// This one is the same as above, but flipped horizontally.
 			// Left facing
-			graphic.drawImage(animation.getImage(), (int) (tx + x) - 25 + 50,
-					(int) (ty + y) - 25, -50, 50, null);
+			graphic.drawImage(animation.getImage(), (int) (tileOffsetX + x) - 23 + 50,
+					(int) (tileOffsetY + y) - 25, -50, 50, null);
 			// The additional 50 in X is to offset the -50 in width that was used to
 			// flip the sprite
 		}
 
-		// // Hitbox graphic
-		// graphic.setColor(Color.RED);
-		//
-		// //Use offset from drawing the player, since x and y are the middle of the player
-		// //and draw draws from the top-left.
-		// graphic.drawRect((int) (tx + x - width / 2), (int) (ty + y - height / 2), width,
-		// height);
+		// Hitbox graphic
+		graphic.setColor(Color.RED);
+
+		// Use offset from drawing the player, since x and y are the middle of the player
+		// and draw draws from the top-left.
+		graphic.drawRect((int) (tileOffsetX + x - width / 2),
+				(int) (tileOffsetY + y - height / 2), width, height);
 	}
 }
