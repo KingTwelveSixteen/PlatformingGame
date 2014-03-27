@@ -1,12 +1,13 @@
 package aPackage;
 
+import aPackage.Tile;
+import startUp.GamePanel;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
-
-import startUp.GamePanel;
 
 public class TileMap
 {
@@ -20,11 +21,10 @@ public class TileMap
 
 	private BufferedReader reader;
 	// private BufferedReader backgroundReader;
-	private String delimeter = "\\s+|\\n"; // Need to do this for numbers greater than 10
-	// otherwise
-	// it would read it as 1, then 0 and screw everything
-	// up.
-	// \\s+ means any white space.
+
+	private String delimeter = "\\s+|\\n"; // Need to do this for numbers greater than 10 otherwise
+										   // it would read it as 1, then 0 and screw everything up.
+										   // \\s+ means any white space.
 
 	private BufferedImage fullTilesetImage;
 	private String tileSetLocation = "graphics/tilesets/";
@@ -55,39 +55,53 @@ public class TileMap
 
 			tileIDMap = new int[mapHeight][mapWidth]; // Y, then X
 
-			// Creates an empty string array of the total size of the tileMap
-			String[] stringTilesArray = new String[mapWidth * mapHeight];
-			int tilesRead = 0;
+			for(int currentRow = 0; currentRow < mapHeight; currentRow++)
+			{
+				int currentColumn = 0;
+				while(currentColumn < mapWidth)
+				{
+					// Read one line from file...
+					String currentLine = reader.readLine();
+
+					// Split it by the delimeter to get the individual tile IDs as string...
+					String[] aLineOfTileIDs = currentLine.split(delimeter);
+
+					int currentIDFromCurrentLine = 0;
+					while(aLineOfTileIDs.length > currentIDFromCurrentLine)
+					{
+						// Put those numbers in the tileIDMap as ints
+						tileIDMap[currentRow][currentColumn] = Integer
+								.parseInt(aLineOfTileIDs[currentIDFromCurrentLine]);
+
+						// Increment what column the current tile ID is on.
+						currentColumn++;
+
+						// Increment what tile ID from the current line is being used.
+						currentIDFromCurrentLine++;
+					}
+					// When done with all things from current line, check to see if that line
+					// actually contained everything from the row. If not, repeat everything after
+					// currentColumn = 0.
+				}
+			}
 
 			// While not read as many tiles as the total number of tiles...
-			while(tilesRead < mapWidth * mapHeight)
-			{
-				// Read one more of the lines...
-				String currentLine = reader.readLine();
-
-				// Split it by the delimeter to get the tile numbers...
-				String[] singleTiles = currentLine.split(delimeter);
-
-				// Then add every number on the line to the array of tiles.
-				for(int i = 0; i < singleTiles.length; i++)
-				{
-					stringTilesArray[tilesRead] = singleTiles[i];
-
-					tilesRead++; // Remember to increase the counter of how many
-					// tiles have been read so far, or this goes on
-					// forever!
-				}
-				// Repeat as necessary. Thus, the while loop.
-			}
-
-			for(int row = 0; row < mapHeight; row++)
-			{
-
-				for(int column = 0; column < mapWidth; column++)
-				{
-					tileIDMap[row][column] = Integer.parseInt(stringTilesArray[column]);
-				}
-			}
+			/*
+			 * while(tilesRead < mapWidth * mapHeight) { // Read one more of the lines... String
+			 * currentLine = reader.readLine();
+			 * 
+			 * // Split it by the delimeter to get the tile numbers... String[] singleTiles =
+			 * currentLine.split(delimeter);
+			 * 
+			 * // Then add every number on the line to the array of tiles. for(int i = 0; i <
+			 * singleTiles.length; i++) { stringTilesArray[tilesRead] = singleTiles[i];
+			 * 
+			 * tilesRead++; // Remember to increase the counter of how many tiles have been // read
+			 * so far, or this goes on forever! } // Repeat as necessary. Thus, the while loop. }
+			 * 
+			 * for(int row = 0; row < mapHeight; row++) { for(int column = 0; column < mapWidth;
+			 * column++) { tileIDMap[row][column] = Integer.parseInt(stringTilesArray[column]); } }
+			 */
 
 		} catch (FileNotFoundException e)
 		{
@@ -99,27 +113,31 @@ public class TileMap
 		{
 			System.out.println("IO Exceeption in TileMap constructor");
 		}
-
 	}
 
 	public void loadTiles(String tileSetName, int pixelOffset)
 	{
-
+		int actualPixelOffset = pixelOffset * 2;
 		try
 		{
 			fullTilesetImage = ImageIO.read(new File(tileSetLocation + tileSetName));
 
-			int numTilesAcross = (fullTilesetImage.getWidth() / tileSize) + pixelOffset;
-			int numTilesDown = (fullTilesetImage.getHeight() / tileSize) + pixelOffset;
+			int numTilesAcross = fullTilesetImage.getWidth() / (tileSize + actualPixelOffset);
+			int numTilesDown = fullTilesetImage.getHeight() / (tileSize + actualPixelOffset);
 
+			// Woo, initialize some stuff for the following loops
+			tilesByID = new ArrayList<Tile>();
 			BufferedImage currentTileImage;
-			int currentTileID = 0;
+
 			for(int row = 0; row < numTilesDown; row++)
 			{
 				for(int column = 0; column < numTilesAcross; column++)
 				{
+					// Grabbing a single tile's image from the main image. Pixel offset is used to
+					// ignore the extra pixels.
 					currentTileImage = fullTilesetImage.getSubimage((column * tileSize)
-							+ pixelOffset, (row * tileSize) + pixelOffset, tileSize, tileSize);
+							+ (actualPixelOffset * column), (row * tileSize)
+							+ (actualPixelOffset * row), tileSize, tileSize);
 
 					// The prototype tileset stuff is set up so that all the blocked things are on a
 					// row other than the first. The top row contains all background elements
@@ -127,14 +145,13 @@ public class TileMap
 					if(row == 0)
 					{
 						Tile currentTile = new Tile(currentTileImage, false);
-						tilesByID.set(currentTileID, currentTile);
+						tilesByID.add(currentTile);
 					}
 					else
 					{
 						Tile currentTile = new Tile(currentTileImage, true);
-						tilesByID.set(currentTileID, currentTile);
+						tilesByID.add(currentTile);
 					}
-					currentTileID++;
 				}
 			}
 		} catch (IOException e)
